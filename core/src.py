@@ -1,7 +1,27 @@
 '''写用户功能层'''
+
+from  interface import user_interface
 #1.注册
 def register():
-    pass
+    while True:
+        #用户功能层
+        user = input('请输入用户名：').strip()
+        pwd = input('请输入密码：').strip()
+        re_pwd = input('请确认密码：').strip()
+        if pwd == re_pwd:
+
+            # 调用注册接口
+            # msg == '%注册成功' % user
+            #(True. %s注册成功) or (False. 用户已存在)
+            flag, msg = user_interface.register_interface(user,pwd)
+
+            #判断
+            if flag:
+                print(msg)
+                break
+            else:
+                print(msg)
+
 
 #2.登陆
 def login():
