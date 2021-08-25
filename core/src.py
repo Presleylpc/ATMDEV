@@ -1,6 +1,6 @@
 '''写用户功能层'''
 
-from  interface import user_interface,bank_interface
+from  interface import user_interface, bank_interface, shop_interface
 from lib import common
 
 user_info = {
@@ -50,7 +50,7 @@ def login():
 def check_balance():
     balance = user_interface.check_bal_interface(user_info['name'])
     print('尊敬的用户[%s]，您的余额为[%s]' %(user_info['name'], balance))
-    pass
+
 
 #4.提现
 @common.login_auth
@@ -110,11 +110,22 @@ def check_flow():
 #8.购物车功能
 @common.login_auth
 def shopping_car():
+
+    #获取用户当前余额
+    user_balance = user_interface.check_bal_interface(user_info['name'])
+
+    #设置一个空的购物车
+    #以商品名称作为key，以商品数量作为value
+    shopping_car_s = {}
+
+    # 商品的总价
+    cost = 0
+
     while True:
         goods_list = [
-            ['凤爪', 50]
-            ['肠粉', 20]
-            ['macbook pro', 10000]
+            ['凤爪', 50],
+            ['肠粉', 20],
+            ['macbook pro', 10000],
             ['肥仔快乐水', 5]
         ]
 
@@ -132,20 +143,58 @@ def shopping_car():
 
             # ['凤爪', 50]
             # 获取商品的名称，单价
-            good,price = goods_list[choose_num]
+            good, price = goods_list[choose_num]
+
+            if user_balance >= price:
+
+                # 判断购物车内商品是否存在，存在+1，不存在设置为1
+                if good in shopping_car_s:
+                    shopping_car_s[good] += 1
+                else:
+                    shopping_car_s[good] = 1
+
+                # 计算总价
+                cost += price
+
+                sure = input('确认购买？请输入y/n:').strip()
+
+                if sure == 'y':
+                    # 调用结账接口
+                    flag, msg = shop_interface.pay_interface(user_info['name'], cost)
+                    if flag:
+                        print(msg)
+                        break
 
 
+                elif sure == 'n':
+
+                    # 调用添加购物车接口
+                    msg = shop_interface.save_shop_car_interface(user_info['name'], shopping_car_s)
+                    print(msg)
+                    break
+
+
+                else:
+                    print('请重新输入')
+                    continue
+
+            else:
+                print('用户余额不足')
+        else:
+            print('请输入商品编号')
 
 
 #9.查看购物车
 @common.login_auth
 def check_shopping_car():
-    pass
+    shop_car_s = shop_interface.check_shop_car_interface(user_info['name'])
+    print(shop_car_s)
 
 #10.注销
 @common.login_auth
 def logout():
-    pass
+    user_info['name'] = None
+
 
 #选择功能的字典
 func_dic={'1':register,
@@ -176,7 +225,7 @@ def run():
     9、查看购物车
     10、注销
         ''')
-        choose = input("请输入功能编号").strip()
+        choose = input("请输入功能编号:").strip()
 
         if choose == 'q':
             break
